@@ -1,6 +1,6 @@
 const W = window.innerWidth, H = window.innerHeight;
 const S = Math.min(W / 1600, H / 1000);    // scales the map to fit any window
-const T = Math.max(S, 0.75);               // text scale (never tiny)
+const T = Math.max(S, 0.75);           
 const GRID = 50;
 const MAX_LINK = 70 * S;
 const MAX_ZOOM = 12;
