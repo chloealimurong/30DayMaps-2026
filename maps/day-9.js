@@ -224,6 +224,58 @@ function drawLand() {
   ctx.restore();
 }
 
+function drawSources() {
+  const ctx = drawingContext;
+  const pad = 10 * T;
+  const x = 24 * T;
+  const y = H - 105 * T;
+  const w = 200 * T;
+  const h = 82 * T;
+  ctx.save();
+
+  ctx.fillStyle = "rgba(226, 238, 222, 0.94)";
+  ctx.strokeStyle = "rgba(22, 66, 38, 0.3)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, 4 * T);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = rgba(P.label);
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.font = `700 ${12 * T}px ${FONT}`;
+  ctx.fillText("DATA SOURCES", x + pad, y + pad);
+
+  // clickable source links
+  ctx.font = `400 ${10 * T}px ${FONT}`;
+
+  const link1 = {
+    text: "Electric Substations — ArcGIS ↗",
+    x: x + pad,
+    y: y + pad + 22 * T,
+    url: "https://services5.arcgis.com/HDRa0B57OVrv2E1q/ArcGIS/rest/services/Electric_Substations/FeatureServer/0"
+  };
+
+  const link2 = {
+    text: "USA Major Cities — ArcGIS ↗",
+    x: x + pad,
+    y: y + pad + 22 * T + 17 * T,
+    url: "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Major_Cities_/FeatureServer/0"
+  };
+
+  ctx.fillStyle = "rgb(22, 66, 38)";
+  ctx.fillText(link1.text, link1.x, link1.y);
+  ctx.fillText(link2.text, link2.x, link2.y);
+
+  ctx.restore();
+  
+  window.sourceLinks = [link1, link2].map(link => ({
+    ...link,
+    width: ctx.measureText(link.text).width,
+    height: 16 * T
+  }));
+}
+
 function drawLabels() {
   const ctx = drawingContext;
   ctx.save();
@@ -356,6 +408,7 @@ function draw() {
   drawCityNames();
   drawLabels();
   drawSignature();
+  drawSources();
 
   if (dirty && millis() - lastChange > 120) renderViewLayers();
 }
@@ -428,6 +481,21 @@ function keyPressed() {
       btn.textContent = showCityNames
         ? "CITY LABELS: ON"
         : "CITY LABELS: OFF";
+    }
+  }
+}
+function mousePressed() {
+  if (!window.sourceLinks) return;
+
+  for (const link of window.sourceLinks) {
+    if (
+      mouseX >= link.x &&
+      mouseX <= link.x + link.width &&
+      mouseY >= link.y &&
+      mouseY <= link.y + link.height
+    ) {
+      window.open(link.url, "_blank");
+      return false;
     }
   }
 }
