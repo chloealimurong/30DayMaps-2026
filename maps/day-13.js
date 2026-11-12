@@ -1,8 +1,10 @@
 /*
   Small pink and orange squares try to fit inside real city outlines, then travel in clusters
   and flow into the next place. The same squares are reused the whole time.
+  The palette grows as the show goes on: after each city a new pastel joins the pink and orange.
   Squares that sit completely inside a boundary stay. Squares that would poke over the edge
   are turned away, so the gaps along the edge show how specific each shape is.
+  The caption under each city gives the size of one square in pixels and how much of the city's area the squares cover.
   Plain canvas, no libraries. Boundaries come from boundaries.js.
 */
 (function () {
@@ -23,15 +25,26 @@
   const GAP = 0.82;                // square size as a fraction of its grid cell
   const FIT_MIN = 0.985;           // a square stays only if at least this much of it is inside the city
   const TRY_MIN = 0.3;             // squares at least this far inside still try, then get turned away
-  const PINK = [345, 82, 78];      // hue, saturation, lightness
-  const ORANGE = [26, 90, 66];
+  // colours as [hue, saturation, lightness]. The first city uses only the base colours,
+  // and each city after it adds the next colour from ADDED.
+  const BASE_COLORS = [[345, 82, 78], [26, 90, 66]];    // pink, orange
+  const ADDED_COLORS = [
+    [262, 75, 86],    // light purple  (joins at city 2)
+    [205, 88, 84],    // light blue    (city 3)
+    [0, 0, 100],      // white         (city 4)
+    [140, 60, 82],    // light green   (city 5)
+    [52, 95, 82],     // light yellow  (city 6)
+    [20, 100, 86],    // light peach   (city 7)
+    [180, 60, 80]     // light teal    (city 8)
+  ];
   const RING_POINTS = 360;         // the outline is resampled to this many points so shapes can morph
   const CLUSTERS = 14;             // squares travel between cities in this many groups
 
-  // timeline for one city, in milliseconds
-  const MORPH = reduceMotion ? 1 : 4200;      // travel as clusters and flow into the new shape
-  const TRY_SPAN = 2200;                      // after landing, misfit squares get turned away over this time
-  const HOLD = 2600;                          // the finished picture
+  // timeline for one city, in milliseconds. Change CITY_SECONDS to make the whole show faster or slower.
+  const CITY_SECONDS = 4;
+  const MORPH = reduceMotion ? 1 : CITY_SECONDS * 470;     // travel as clusters and flow into the new shape
+  const TRY_SPAN = CITY_SECONDS * 245;                     // after landing, misfit squares get turned away over this time
+  const HOLD = CITY_SECONDS * 285;                         // the finished picture
   const CITY_TIME = MORPH + TRY_SPAN + HOLD;
 
   const cities = window.CityBoundaries.cities;
@@ -42,13 +55,16 @@
   let squares = [];
 
   const rand = (a, b) => a + Math.random() * (b - a);
+  const paletteFor = i => BASE_COLORS.concat(ADDED_COLORS.slice(0, Math.min(i, ADDED_COLORS.length)));
+  const pickColor = base => 'hsl(' + (base[0] + rand(-6, 6)).toFixed(0) + ',' + base[1] + '%,' +
+    clamp(base[2] + rand(-5, 5), 40, 100).toFixed(0) + '%)';
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const lerp = (a, b, k) => a + (b - a) * k;
   const smooth = k => k * k * (3 - 2 * k);
 
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
-    S = Math.max(300, Math.floor(Math.min(window.innerWidth - 24, window.innerHeight - 24, 820)));
+    S = Math.max(300, Math.floor(Math.min(window.innerWidth - 24, window.innerHeight - 130, 820)));    
     stage.style.width = S + 'px';
     stage.style.height = S + 'px';
     [canvas, sqCanvas].forEach(c => {
@@ -163,12 +179,12 @@
 
   // ---------- squares ----------
   function newSquare() {
-    const base = Math.random() < 0.5 ? PINK : ORANGE;
+    const palette = paletteFor(idx);
     const edge = Math.floor(rand(0, 4)), along = rand(0, S);
     return {
       x: edge === 0 ? -20 : edge === 1 ? S + 20 : along, y: edge === 2 ? -20 : edge === 3 ? S + 20 : along,
-      vx: 0, vy: 0, tx: S / 2, ty: S / 2, a: 0, aT: 0, role: 'out', rejectAt: 0, rejected: false, ph: rand(0, 6.28),
-      color: 'hsl(' + (base[0] + rand(-6, 6)).toFixed(0) + ',' + base[1] + '%,' + (base[2] + rand(-6, 6)).toFixed(0) + '%)'
+      vx: 0, vy: 0, tx: S / 2, ty: S / 2, a: 0, aT: 0, role: 'out', rejectAt: 0, ph: rand(0, 6.28),
+      color: pickColor(palette[Math.floor(rand(0, palette.length))])
     };
   }
 
@@ -191,8 +207,7 @@
       chosen.add(q);
       q.tx = slot.x; q.ty = slot.y; q.aT = 1;
       q.role = slot.fit ? 'fit' : 'try';
-      q.rejected = false;
-      q.rejectAt = MORPH + rand(500, TRY_SPAN);
+      q.rejectAt = MORPH + rand(TRY_SPAN * 0.2, TRY_SPAN);
       q.ox = slot.x - cx; q.oy = slot.y - cy;                 // direction it will be pushed back out
     });
     squares.forEach(q => {
@@ -213,7 +228,7 @@
     const showing = scene ? currentRing() : null;
     const e = smooth(clamp(morphT / (MORPH * 0.9), 0, 1));
     if (scene) {
-      capFrom = { label: scene.city.label, landed: counts.landed, away: counts.away, covered: counts.covered, a: capAlpha() };
+      capFrom = { label: scene.city.label, side: scene.side, covered: counts.covered };
       extraFrom = scene.extra; extraFromA = e;
     } else {
       capFrom = null; extraFrom = null; extraFromA = 0;
@@ -222,6 +237,7 @@
     scene = next;
     morphT = 0;
     assignTargets(scene);
+    updatePalette();
     // split the squares into clusters; each cluster drifts as one group while the shape changes
     const seeds = [];
     for (let i = 0; i < CLUSTERS; i++) { const q = squares[Math.floor(rand(0, squares.length))]; seeds.push({ x: q.x, y: q.y, ph: rand(0, 6.28), ph2: rand(0, 6.28) }); }
@@ -233,6 +249,20 @@
     });
   }
 
+  // Back at the first city the palette starts over with pink and orange. Every other city
+  // brings in its new colour by recolouring a share of the squares, so each colour ends up
+  // roughly equally common. This happens while the squares are travelling, so it blends in.
+  function updatePalette() {
+    const palette = paletteFor(idx);
+    if (idx === 0) {
+      squares.forEach(q => { q.color = pickColor(palette[Math.floor(rand(0, palette.length))]); });
+      return;
+    }
+    if (idx > ADDED_COLORS.length) return;
+    const fresh = ADDED_COLORS[idx - 1];
+    squares.forEach(q => { if (Math.random() < 1 / palette.length) q.color = pickColor(fresh); });
+  }
+
   function updateSquares(dt) {
     const p = clamp(morphT / MORPH, 0, 1);
     const swirl = Math.sin(Math.PI * p) * S * 1.1;                   // wobble, strongest in the middle of the melt
@@ -241,17 +271,16 @@
     const tt = clock / 1000;
     const steps = Math.max(1, Math.ceil(dt / 16));
     const h = dt / steps / 1000;
-    counts.landed = 0; counts.away = 0;
+    counts.landed = 0;
     squares.forEach(q => {
       let tx = q.tx, ty = q.ty, k = K, d = D, sw = swirl;
       if (q.role === 'try') {
         if (morphT >= q.rejectAt) {                                  // turned away: pushed back out and faded
-          q.rejected = true;
           const m = Math.hypot(q.ox, q.oy) || 1;
           tx = q.tx + (q.ox / m) * S * 0.2 + Math.sin(q.ph) * S * 0.05; ty = q.ty + (q.oy / m) * S * 0.2 + Math.cos(q.ph) * S * 0.05;
           k = 2.5; d = 2 * Math.sqrt(k);
           q.aT = 0;
-        } else if (morphT >= q.rejectAt - 350 && p >= 1) {
+        } else if (morphT >= q.rejectAt - TRY_SPAN * 0.15 && p >= 1) {
           tx += Math.sin(morphT * 0.07 + q.ph) * 1.8;                // a little shake against the outline
         }
       }
@@ -265,11 +294,10 @@
       }
       q.a += (q.aT - q.a) * Math.min(1, dt * (q.role === 'out' ? 0.0012 : 0.004));
       if (q.role === 'fit' && p >= 1 && Math.abs(q.x - q.tx) < 2 && Math.abs(q.y - q.ty) < 2) counts.landed++;
-      if (q.role === 'try' && q.rejected) counts.away++;
     });
     counts.covered = Math.round((100 * counts.landed * scene.pitch * scene.pitch) / scene.cityPixels);
   }
-  const counts = { landed: 0, away: 0, covered: 0 };
+  const counts = { landed: 0, covered: 0 };
 
   // ---------- going to a city ----------
   async function go(i) {
@@ -307,10 +335,10 @@
     return clamp((p - 0.6) / 0.4, 0, 1);
   }
 
-  function drawCaption(label, landed, away, covered, alpha) {
+  function drawCaption(label, side, covered, alpha) {
     if (alpha <= 0.01) return;
     drawText(label, S / 2, S - S * 0.095, Math.max(16, S * 0.032), alpha, false);
-    drawText(landed + ' squares fit  ·  ' + away + " didn't  ·  " + covered + '% of the area covered',
+    drawText( covered + '% of the area covered',
       S / 2, S - S * 0.05, Math.max(11, S * 0.019), 0.8 * alpha, true);
   }
 
@@ -350,8 +378,8 @@
     sctx.globalAlpha = 1;
 
     // caption
-    if (capFrom) drawCaption(capFrom.label, capFrom.landed, capFrom.away, capFrom.covered, 1 - clamp(p / 0.4, 0, 1));
-    drawCaption(scene.city.label, counts.landed, counts.away, counts.covered, capAlpha());
+    if (capFrom) drawCaption(capFrom.label, capFrom.side, capFrom.covered, 1 - clamp(p / 0.4, 0, 1));
+    drawCaption(scene.city.label, scene.side, counts.covered, capAlpha());
     ctx.textAlign = 'left';
     ctx.globalAlpha = 0.6;
     ctx.fillStyle = INK;
@@ -373,7 +401,6 @@
     requestAnimationFrame(frame);
   }
 
-  stage.addEventListener('click', function () { go(idx + 1); });
   window.addEventListener('keydown', function (e) {
     if (e.key === 'ArrowRight') go(idx + 1);
     if (e.key === 'ArrowLeft') go(idx - 1);

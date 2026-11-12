@@ -1,0 +1,42 @@
+:root {
+  --paper: #F8F8DD;   /* same as PAPER in the sketch */
+  --ink: #554242;     /* same as INK in the sketch */
+  --muted: #7d6e6e;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Georgia, serif;
+}
+
+body {
+  min-height: 100vh;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;   /* stage on top, credit lines stacked underneath */
+  align-items: center;
+  justify-content: center;
+}
+
+.stage canvas { position: absolute; top: 0; left: 0; }
+#c { z-index: 1; }
+#squares { z-index: 2; filter: url(#goo); }
+
+.credit {
+  position: static;         /* undo any old absolute positioning */
+  inset: auto;              /* clears top, right, bottom and left */
+  transform: none;
+  width: auto;
+  flex: none;
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  text-align: center;
+}
+.stage + .credit { margin-top: 14px; }
+.credit a { color: var(--ink); }

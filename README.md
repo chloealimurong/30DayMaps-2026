@@ -7,3 +7,6 @@ In my map, users can explore where substations reach and where they don't. The w
 
 ## Day 12: Power
 I wanted to map the price of power. In this case, utility rates in Baltimore. Living there my whole life, everyone knew prices were increasing but had no idea the extent. I map the extent with a cool style i found in Open Processing.
+
+## Day 13: Interactions
+

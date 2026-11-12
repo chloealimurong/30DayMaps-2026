@@ -10,12 +10,12 @@
   // thr = how much Nominatim may simplify the outline, in degrees (smaller = more detail).
   const CITIES = [
     { id: 'baltimore', label: 'Baltimore', queries: [{ q: 'Baltimore, Maryland, United States', type: 'city', thr: 0.0001 }] },
-    { id: 'durham', label: 'Durham, North Carolina', queries: [{ q: 'Durham, North Carolina, United States', type: 'city', thr: 0.0001 }] },
+    { id: 'durham', label: 'Durham', queries: [{ q: 'Durham, North Carolina, United States', type: 'city', thr: 0.0001 }] },
     { id: 'barcelona', label: 'Barcelona', queries: [{ q: 'Barcelona, Catalonia, Spain', type: 'city', thr: 0.0001 }] },
-    { id: 'jiangsu', label: 'Jiangsu Province, China', queries: [{ q: 'Jiangsu, China', type: 'state', thr: 0.0008 }] },
-    // New Zealand's country outline, keeping only the pieces whose centre lies north of Cook Strait
-    { id: 'north-island', label: 'North Island, New Zealand', queries: [{ q: 'New Zealand', type: 'country', thr: 0.002, minLat: -41.9 }] },
-    { id: 'dc', label: 'Washington, DC', queries: [{ q: 'Washington, District of Columbia, United States', type: 'city', thr: 0.0001 }] },
+    { id: 'kunshan', label: '昆山', queries: [{ q: 'Kunshan, Suzhou, Jiangsu, China', type: 'city', thr: 0.0001 }] },
+    { id: 'shanghai', label: '上海', queries: [{ q: 'Shanghai, China', type: 'city', thr: 0.0004 }] },
+    { id: 'napier', label: 'Napier', queries: [{ q: 'Napier, Hawke\'s Bay, New Zealand', type: 'city', thr: 0.0001 }] },
+    { id: 'dc', label: 'DC', queries: [{ q: 'Washington, District of Columbia, United States', type: 'city', thr: 0.0001 }] },
     { id: 'philadelphia', label: 'Philadelphia', queries: [{ q: 'Philadelphia, Pennsylvania, United States', type: 'city', thr: 0.0001 }] }
   ];
 
@@ -70,14 +70,6 @@
     return polys.filter((p, i) => areas[i] >= biggest * KEEP_FRACTION);
   }
 
-  // shapes that straddle the 180 degree line (like New Zealand's outlying islands) get shifted east
-  function unwrapAntimeridian(polys) {
-    let lo = Infinity, hi = -Infinity;
-    polys.forEach(p => p.forEach(r => r.forEach(c => { lo = Math.min(lo, c[0]); hi = Math.max(hi, c[0]); })));
-    if (hi - lo <= 180) return polys;
-    return polys.map(p => p.map(r => r.map(c => [c[0] < 0 ? c[0] + 360 : c[0], c[1]])));
-  }
-
   async function fetchQuery(spec) {
     let results = await search(spec.q, spec.type, spec.thr);
     let g = pickBoundary(results);
@@ -86,14 +78,7 @@
       g = pickBoundary(results);
     }
     if (!g) throw new Error('No boundary found for ' + spec.q);
-    let polys = toPolygons(g);
-    if (spec.minLat !== undefined) {            // keep only pieces centred north of this latitude
-      polys = polys.filter(p => {
-        const ring = p[0];
-        return ring.reduce((a, c) => a + c[1], 0) / ring.length > spec.minLat;
-      });
-    }
-    return polys;
+    return toPolygons(g);
   }
 
   async function loadCity(city) {
@@ -104,7 +89,7 @@
 
     let polys = [];
     for (const spec of city.queries) polys = polys.concat(await fetchQuery(spec));
-    polys = unwrapAntimeridian(dropTinyIslands(polys));
+    polys = dropTinyIslands(polys);
 
     try { localStorage.setItem(CACHE_KEY + city.id, JSON.stringify(polys)); } catch (e) { /* too big or blocked */ }
     return polys;
