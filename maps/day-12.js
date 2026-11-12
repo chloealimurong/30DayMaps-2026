@@ -145,7 +145,8 @@ function updateText() {
   const legendNote = document.querySelector(".legend-note");
   if (legendNote) legendNote.textContent = lead ? "Estimated electric bill at 2022 usage, as a percent of the 2022 area average (100% = average). Each ZIP's electricity use is modeled from 2022 data (built on 2018–2022 survey data)." : "Electricity rate per kWh. More lights means a higher rate.";
 
-  document.getElementById("data-note").hidden = !lead;
+  const dataNote = document.getElementById("data-note");
+  if (dataNote) dataNote.hidden = !lead;
 
   if (nodes.some(n => n.series.some(v => v != null))) {
     document.getElementById("status").textContent =
