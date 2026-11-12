@@ -210,12 +210,27 @@ function draw() {
 
 // set each ZIP's target price for this year
 function applyYear(year) {
+  console.log("YEAR:", year);
+
   for (const n of nodes) {
     const v = n.series[year - yearMin];
-    if (v == null) { n.active = false; continue; }
+
+    console.log(
+      n.zip,
+      "price:", v,
+      "normalized:", v == null ? null : priceT(v)
+    );
+
+    if (v == null) {
+      n.active = false;
+      continue;
+    }
+
     const tt = priceT(v);
-    if (!n.active) n.t = tt;                          // just appeared: no colour sweep
-    else if (abs(tt - n.target) > 0.002) n.flash = 1; // price changed: brief pulse
+
+    if (!n.active) n.t = tt;
+    else if (abs(tt - n.target) > 0.002) n.flash = 1;
+
     n.target = tt;
     n.active = true;
   }
