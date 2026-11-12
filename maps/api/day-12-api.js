@@ -8,8 +8,8 @@
 //   b. the live API, one request per ZIP (needs CONFIG.API_KEY)
 //   If neither is available, no rates are shown (ZIPs draw as grey outlines).
 //
-// After a live load, type downloadRates() in the browser console to save the
-// JSON, then put it in data/baltimore-rates.json.
+// After a live load, run downloadRates() in the browser console to save the JSON,
+// then put it in data/baltimore-rates.json.
 
 const ZIP_LAYER =
   "https://mdgeodata.md.gov/imap/rest/services/Boundaries/MD_PoliticalBoundaries/MapServer/4/query";
@@ -147,17 +147,19 @@ async function fetchZip(zip) {
   }
 }
 
-// OpenEI gives dates as Unix seconds. Accept ISO strings too, just in case.
+// OpenEI gives dates as Unix seconds. Accept ISO strings too, and repair
+// years entered with a typo like "0022-".
 function toSeconds(v) {
   if (v == null || v === "") return null;
   if (typeof v === "number") return v;
+  if (typeof v === "string") v = v.replace(/^00(\d{2})-/, "20$1-");
   const ms = Date.parse(v);
   return Number.isNaN(ms) ? null : ms / 1000;
 }
 
 // energyratestructure is [period][tier] = { rate, adj, max, unit }
 // Every period/tier is averaged into one price. Ended plans are kept, because
-// the map now steps through the years.
+// the map steps through the years.
 function normalizeRate(item) {
   const prices = [];
   for (const period of item.energyratestructure || []) {
@@ -169,11 +171,7 @@ function normalizeRate(item) {
   if (prices.length === 0) return null;
 
   return {
-    name: item.name,
-    utility: item.utility,
     price: prices.reduce((a, b) => a + b, 0) / prices.length,
-    low: Math.min(...prices),
-    high: Math.max(...prices),
     start: toSeconds(item.startdate),
     end: toSeconds(item.enddate)
   };

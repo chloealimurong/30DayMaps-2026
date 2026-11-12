@@ -1,9 +1,10 @@
 :root {
-  --bg: #ffffff;
-  --ink: #1e1e28;
-  --muted: #6b6b76;
-  --cheap: #241773;   /* low price */
-  --pricey: #ff3b30;  /* high price */
+  --bg: #0b0b14;
+  --ink: #ebe8e1;
+  --muted: #9a98a6;
+  --cheap: #4a35a6;   /* low price: dim purple */
+  --mid: #d6457a;     /* middle: rose */
+  --pricey: #fff04a;  /* high price: bright yellow */
 }
 
 * { box-sizing: border-box; }
@@ -53,7 +54,7 @@ h1 {
 .legend-bar {
   width: 140px;
   height: 8px;
-  background: linear-gradient(to right, var(--cheap), var(--pricey));
+  background: linear-gradient(to right, var(--cheap), var(--mid), var(--pricey));
 }
 
 .legend-note { color: var(--muted); }
@@ -78,7 +79,3 @@ h1 {
 }
 
 #tooltip strong { display: block; }
-
-@media (prefers-reduced-motion: reduce) {
-  #canvas-holder canvas { animation: none; }
-}
