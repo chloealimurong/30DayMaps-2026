@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>What power costs in Baltimore</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>What power costs in Baltimore</h1>
+      <p id="status">Loading rate plans…</p>
+    </header>
+
+    <div id="canvas-holder"></div>
+
+    <footer>
+      <div class="legend">
+        <span id="legend-min">–</span>
+        <div class="legend-bar"></div>
+        <span id="legend-max">–</span>
+        <span class="legend-note">$/kWh. Tighter rings mean a higher price.</span>
+      </div>
+      <p class="credit">
+        Rates: <a href="https://openei.org/wiki/Utility_Rate_Database">OpenEI Utility Rate Database</a>.
+        Sketch adapted from <a href="https://ronikaufman.github.io">Roni Kaufman</a>.
+      </p>
+    </footer>
+  </main>
+
+  <div id="tooltip" hidden></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+    <script src="config.js"></script>
+    <script src="api/day-12-api.js"></script>
+    <script src="day-12.js"></script>
+</body>
+</html>

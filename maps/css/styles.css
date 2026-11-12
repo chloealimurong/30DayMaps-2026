@@ -1,0 +1,84 @@
+:root {
+  --bg: #ffffff;
+  --ink: #1e1e28;
+  --muted: #6b6b76;
+  --cheap: #241773;   /* low price */
+  --pricey: #ff3b30;  /* high price */
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Linotype Didot", "Didot", "Bodoni Moda", serif;
+}
+
+main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 20px 48px;
+}
+
+h1 {
+  margin: 0 0 4px;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+#status {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+#canvas-holder canvas {
+  display: block;
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  font-size: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.legend-bar {
+  width: 140px;
+  height: 8px;
+  background: linear-gradient(to right, var(--cheap), var(--pricey));
+}
+
+.legend-note { color: var(--muted); }
+
+.credit {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.credit a { color: var(--ink); }
+
+#tooltip {
+  position: fixed;
+  pointer-events: none;
+  max-width: 240px;
+  padding: 8px 10px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+#tooltip strong { display: block; }
+
+@media (prefers-reduced-motion: reduce) {
+  #canvas-holder canvas { animation: none; }
+}
