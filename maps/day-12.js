@@ -141,11 +141,9 @@ function updateText() {
 
   let how;
   if (lead) {
-    how = "Each outlined shape is a ZIP code: more lights, and brighter yellow instead of dim purple, mean a higher estimated electric bill at 2022 usage, compared with the 2022 area average. " +
-      "These ZIP codes share one utility rate each year, so they rise and fall together, and the lines between them sway and pulse faster in years when the rate jumps.";
+    how = "Each outlined shape is a ZIP code: more lights, in brighter yellow instead of dim purple, mean a higher estimated electric bill at 2022 usage, and the lines between ZIP codes sway and pulse faster in years when the shared utility rate jumps.";
   } else {
-    how = "Each outlined shape is a ZIP code: more lights, and brighter yellow instead of dim purple, mean a higher electricity rate. " +
-      "These ZIP codes share one utility rate each year, so they rise and fall together, and the lines between them sway and pulse faster in years when the rate jumps.";
+    how = "Each outlined shape is a ZIP code: more lights, in brighter yellow instead of dim purple, mean a higher electricity rate, and the lines between ZIP codes sway and pulse faster in years when the rate jumps.";
   }
   if (!zipCostOk) how += ` (Household spending isn't available: ${costNote}. Put the data file at data/lead-md-2022.csv.)`;
   document.getElementById("how-to").textContent = how;
@@ -441,8 +439,8 @@ function drawIdleDot(n) {
   circle(n.x, n.y, 5);
 }
 
-// One bokeh disc in one colour of the scale, drawn once and reused:
-// a translucent flat disc with a brighter rim and a very slightly soft edge.
+// One bokeh light of one colour of the scale, drawn once and reused:
+// a round, see-through disc with a brighter rim and a very slightly soft edge.
 const spriteCache = [];
 function lightSprite(bucket) {
   if (spriteCache[bucket]) return spriteCache[bucket];
@@ -451,15 +449,31 @@ function lightSprite(bucket) {
   cv.width = cv.height = size;
   const g = cv.getContext("2d");
   const rgba = a => `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${a})`;
-  const grad = g.createRadialGradient(h, h, 0, h, h, h);
-  grad.addColorStop(0, rgba(0.30));      // flat, see-through middle
-  grad.addColorStop(0.72, rgba(0.38));
-  grad.addColorStop(0.88, rgba(1));      // brighter rim
-  grad.addColorStop(0.95, rgba(0.55));
-  grad.addColorStop(1, rgba(0));         // softly fades out
-  g.fillStyle = grad;
-  g.fillRect(0, 0, size, size);
+
+  g.beginPath();
+  g.arc(h, h, h * 0.8, 0, TWO_PI);
+  g.fillStyle = rgba(0.34);          // flat, see-through middle
+  g.fill();
+  g.shadowColor = rgba(0.9);         // soft glow around the rim
+  g.shadowBlur = 5;
+  g.lineWidth = 5;
+  g.strokeStyle = rgba(1);           // brighter rim
+  g.stroke();
   return (spriteCache[bucket] = cv);
+}
+
+// the width of a ZIP's polygon as a square would have it, so lights can be sized relative to it
+function zipSpan(n) {
+  if (n.span === undefined) {
+    let area = 0;
+    for (const ring of n.rings) {
+      let a = 0;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) a += ring[j].x * ring[i].y - ring[i].x * ring[j].y;
+      area += abs(a) / 2;
+    }
+    n.span = sqrt(area);
+  }
+  return n.span;
 }
 
 // random spot inside a ZIP's own boundary (any of its pieces), so lights spread over the whole shape
@@ -496,7 +510,8 @@ function drawLights(n) {
     const pt = randomPointIn(n);
     n.lights.push({
       hx: pt.x - n.x, hy: pt.y - n.y, ph: random(TWO_PI), sp: random(0.004, 0.012),
-      size: random(6, 16),                      // small discs
+      // size is relative to the ZIP: mostly small lights, a few big ones
+      size: constrain(zipSpan(n) * (0.05 + 0.24 * random() ** 2), 3, 44),
       bucket, a: 0, dying: false
     });
   }
