@@ -119,12 +119,6 @@ function buildControls() {
   const holder = document.getElementById("canvas-holder");
   holder.insertAdjacentElement("beforebegin", bar);
 
-  const note = document.createElement("p");
-  note.id = "data-note";
-  note.textContent =
-    "Estimates, not metered bills. Each ZIP's electricity use is modeled from 2022 data (built on 2018–2022 survey data) and held fixed; other years show what that same use would cost at that year's average electricity rate. Figures are shown against the area average, not as exact dollar amounts.";
-  holder.insertAdjacentElement("afterend", note);
-
 }
 
 function initSeries() {
@@ -149,7 +143,7 @@ function updateText() {
   document.getElementById("how-to").textContent = how;
 
   const legendNote = document.querySelector(".legend-note");
-  if (legendNote) legendNote.textContent = lead ? "Estimated electric bill at 2022 usage, as a percent of the 2022 area average (100% = average)." : "Electricity rate per kWh. More lights means a higher rate.";
+  if (legendNote) legendNote.textContent = lead ? "Estimated electric bill at 2022 usage, as a percent of the 2022 area average (100% = average). Each ZIP's electricity use is modeled from 2022 data (built on 2018–2022 survey data)." : "Electricity rate per kWh. More lights means a higher rate.";
 
   document.getElementById("data-note").hidden = !lead;
 
