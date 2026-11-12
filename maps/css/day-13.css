@@ -17,26 +17,27 @@ body {
   min-height: 100vh;
   padding: 12px;
   display: flex;
-  flex-direction: column;   /* stage on top, credit lines stacked underneath */
+  flex-direction: column;   /* the map on top, the notes underneath */
   align-items: center;
   justify-content: center;
 }
 
+/* the two canvases sit on top of each other; the sketch sets the stage's size */
+.stage { position: relative; flex: none; }
 .stage canvas { position: absolute; top: 0; left: 0; }
-#c { z-index: 1; }
-#squares { z-index: 2; filter: url(#goo); }
+#c { z-index: 1; }                            /* paper, outline, caption */
+#squares { z-index: 2; filter: url(#goo); }   /* squares, melted by the goo filter */
 
-.credit {
-  position: static;         /* undo any old absolute positioning */
-  inset: auto;              /* clears top, right, bottom and left */
-  transform: none;
-  width: auto;
+/* one sentence per line */
+.notes {
   flex: none;
+  margin-top: 14px;
+  text-align: center;
+}
+.notes p {
   margin: 4px 0 0;
   color: var(--muted);
   font-size: 0.8rem;
   line-height: 1.4;
-  text-align: center;
 }
-.stage + .credit { margin-top: 14px; }
-.credit a { color: var(--ink); }
+.notes a { color: var(--ink); }
