@@ -135,7 +135,7 @@ function updateText() {
 
   let how;
   if (lead) {
-    how = "Each outlined shape is a ZIP code: more lights, in brighter yellow instead of dim purple, mean a higher estimated electric bill at 2022 usage, and the lines between ZIP codes sway and pulse faster in years when the shared utility rate jumps.";
+    how = "The more lights, in brighter yellow instead of dim purple, mean a higher estimated electric bill should households maintain a 2022 usage, and the lines between ZIP codes sway and pulse faster in years when the shared utility rate jumps.";
   } else {
     how = "Each outlined shape is a ZIP code: more lights, in brighter yellow instead of dim purple, mean a higher electricity rate, and the lines between ZIP codes sway and pulse faster in years when the rate jumps.";
   }
