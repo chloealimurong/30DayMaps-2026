@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Squares and cities</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #F8F8DD; }
+    body { display: grid; place-items: center; font-family: Georgia, serif; color: #554242; }
+    .stage { position: relative; cursor: pointer; }
+    .stage canvas { position: absolute; left: 0; top: 0; display: block; }
+    .credit { position: fixed; left: 0; right: 0; bottom: 6px; margin: 0; text-align: center; font-size: 11px; opacity: .7; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <div class="stage" id="stage" aria-label="Pink and orange squares melting into blobs and trying to fit the outlines of cities">
+    <canvas id="c"></canvas>
+    <canvas id="squares"></canvas>
+  </div>
+  <p class="credit">Click or use the arrow keys to skip ahead. Boundaries &copy; OpenStreetMap contributors via Nominatim. Inspired by "ascii-blobs" by @cartocopia.</p>
+  <script src="api/day-13-boundaries.js"></script>
+  <script src="day-13.js"></script>
+</body>
+</html>
